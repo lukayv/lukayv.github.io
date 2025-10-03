@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Press+Start+2P&family=Roboto+Mono:wght@400;700&family=MedievalSharp&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -16,6 +16,20 @@
 
     <style>
         :root {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-primary: #22d3ee;
+            --accent-secondary: #67e8f9;
+            --font-main: 'Inter', sans-serif;
+            --font-game: 'Press Start 2P', cursive;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+
+        
+        [data-theme="futurista"] {
             --bg-primary: #111827;
             --bg-secondary: #1f2937;
             --bg-tertiary: #374151;
@@ -510,7 +524,7 @@
     
     <script>
         // Service Worker Registration
-        if ('serviceWorker' in navigator) {
+        /* if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then(registration => {
@@ -520,7 +534,7 @@
                         console.log('ServiceWorker registration failed: ', err);
                     });
             });
-        }
+        } */
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -796,6 +810,16 @@
             renderPerks();
             renderSwapCounters();
             lucide.createIcons();
+
+        // Evitar reload nos formulários de criar missão
+        [DOMElements.addDailyMissionForm, DOMElements.addWeeklyMissionForm, DOMElements.addMonthlyMissionForm].forEach(form => {
+            if (form) {
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                });
+            }
+        });
+
         }
 
         function renderCharacterSheet() {
@@ -829,7 +853,7 @@
                 
                 let nextPerkTitle = 'Nível Máximo Atingido';
                 if (PERKS[key]) {
-                    const nextPerkLevel = Object.keys(PERKS[key]).find(level => level > attr.level);
+                    const nextPerkLevel = Object.keys(PERKS[key]).map(Number).find(level => level > attr.level);
                     if (nextPerkLevel) {
                         nextPerkTitle = `Próximo Perk: ${PERKS[key][nextPerkLevel].name} (Nv. ${nextPerkLevel})`;
                     }
@@ -1490,6 +1514,16 @@
                 </div>
             `;
             lucide.createIcons();
+
+        // Evitar reload nos formulários de criar missão
+        [DOMElements.addDailyMissionForm, DOMElements.addWeeklyMissionForm, DOMElements.addMonthlyMissionForm].forEach(form => {
+            if (form) {
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                });
+            }
+        });
+
         }
 
         function populateAttributeSelectors() {
@@ -1608,6 +1642,16 @@
             if (needsRender) {
                 renderPerks();
                 lucide.createIcons();
+
+        // Evitar reload nos formulários de criar missão
+        [DOMElements.addDailyMissionForm, DOMElements.addWeeklyMissionForm, DOMElements.addMonthlyMissionForm].forEach(form => {
+            if (form) {
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                });
+            }
+        });
+
             }
         }
         
@@ -1617,7 +1661,7 @@
                 .catch((error) => {
                     console.error("Erro na autenticação com Google:", error);
                 });
-        }
+        } */
 
         function init() {
             populateAttributeSelectors();
@@ -1733,5 +1777,4 @@
     </script>
 </body>
 </html>
-
 
