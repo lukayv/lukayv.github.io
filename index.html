@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="futurista">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LifeQuest AI - Integrado</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    :root{
+      --bg-primary:#0b1220; --bg-secondary:#111827; --bg-tertiary:#1f2937;
+      --text-primary:#e6eef8; --text-secondary:#9ca3af; --accent:#22d3ee;
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+    }
+    [data-theme="futurista"]{}
+    body { background:var(--bg-primary); color:var(--text-primary); margin:0; }
+    .card { background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); padding:12px; border-radius:10px; }
+    /* mobile-first layout tweaks */
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-around; padding:8px 0; background:var(--bg-secondary); border-top:1px solid rgba(255,255,255,0.03); }
+    main { padding-bottom:72px; } /* leave space for bottom-nav */
+    .hidden { display:none; }
+  </style>
+</head>
+<body class="antialiased">
+  <main class="p-4 max-w-3xl mx-auto">
+    <header class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-2xl font-bold" style="color:var(--accent)">LifeQuest AI</h1>
+        <p class="text-sm text-gray-400">Seu assistente gamificado</p>
+      </div>
+      <div id="user-avatar" class="text-right">
+        <div id="user-name" class="text-sm text-gray-300">Convidado</div>
+      </div>
+    </header>
+
+    <!-- Dashboard / Missions -->
+    <section id="missions-section" class="card mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="font-semibold">Missões</h2>
+        <div id="xp-display" class="text-sm text-gray-300">LVL 1 • XP 0/100</div>
+      </div>
+      <div id="missions-list" class="space-y-2">
+        <button id="gain-xp" class="w-full bg-cyan-600 text-black font-semibold py-2 rounded">Completar Missão (+50 XP)</button>
+      </div>
+    </section>
+
+    <!-- Community & Chat -->
+    <section id="community-section" class="card mb-4 hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold">Comunidades</h2>
+        <div class="flex gap-2">
+          <input id="new-community-name" placeholder="Nova comunidade" class="bg-transparent border border-gray-700 px-2 py-1 rounded text-sm" />
+          <button id="create-community-btn" class="bg-violet-600 px-3 py-1 rounded text-sm">Criar</button>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <h3 class="text-sm text-gray-300 mb-2">Entrar em comunidade</h3>
+        <div id="communities-list" class="space-y-2"></div>
+      </div>
+
+      <div class="mb-3">
+        <h3 class="text-sm text-gray-300 mb-2">Chat</h3>
+        <div class="mb-2 flex items-center gap-2">
+          <label class="text-xs text-gray-400">Sala:</label>
+          <select id="chat-room-select" class="bg-transparent border border-gray-700 rounded px-2 py-1 text-sm">
+            <option value="global">Global</option>
+          </select>
+        </div>
+        <div id="chat-messages" class="h-56 overflow-y-auto bg-black/10 p-2 rounded mb-2"></div>
+        <div class="flex gap-2">
+          <input id="chat-input" class="flex-1 bg-transparent border border-gray-700 px-2 py-2 rounded" placeholder="Escreva uma mensagem..." />
+          <button id="chat-send" class="bg-cyan-600 px-3 py-2 rounded">Enviar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shop -->
+    <section id="shop-section" class="card mb-4 hidden">
+      <h2 class="font-semibold">Loja</h2>
+      <p class="text-sm text-gray-400">Em breve: itens, boosts e temas.</p>
+    </section>
+
+    <!-- Profile -->
+    <section id="profile-section" class="card mb-4 hidden">
+      <h2 class="font-semibold">Perfil</h2>
+      <div class="mt-2">
+        <div id="profile-info" class="text-sm text-gray-300">Não autenticado</div>
+        <div id="profile-stats" class="text-sm text-gray-400 mt-2"></div>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button id="google-login-btn" class="bg-red-600 px-3 py-2 rounded">Entrar com Google</button>
+        <button id="logout-btn" class="bg-gray-700 px-3 py-2 rounded hidden">Sair</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button data-tab="missions-section" class="tab-btn flex flex-col items-center text-xs">
+      <i data-lucide="swords"></i>
+      <span>Missões</span>
+    </button>
+    <button data-tab="community-section" class="tab-btn flex flex-col items-center text-xs">
+      <i data-lucide="users"></i>
+      <span>Comunidade</span>
+    </button>
+    <button data-tab="shop-section" class="tab-btn flex flex-col items-center text-xs">
+      <i data-lucide="shopping-cart"></i>
+      <span>Loja</span>
+    </button>
+    <button data-tab="profile-section" class="tab-btn flex flex-col items-center text-xs">
+      <i data-lucide="settings"></i>
+      <span>Perfil</span>
+    </button>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, arrayUnion, arrayRemove
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    // === SUA CONFIG AQUI (já fornecida) ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyBuLs2bZ8-_8ci1Q4Nt4pYMZc1BplmDjOs",
+      authDomain: "isk-ia.firebaseapp.com",
+      projectId: "isk-ia",
+      storageBucket: "isk-ia.firebasestorage.app",
+      messagingSenderId: "442504849543",
+      appId: "1:442504849543:web:52c05c5aac9cb5a1e3b022",
+      measurementId: "G-KMHL5D27FP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // DOM refs
+    const tabs = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('main section');
+    const xpDisplay = document.getElementById('xp-display');
+    const gainXpBtn = document.getElementById('gain-xp');
+    const userNameEl = document.getElementById('user-name');
+    const profileInfo = document.getElementById('profile-info');
+    const profileStats = document.getElementById('profile-stats');
+    const loginBtn = document.getElementById('google-login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const communitiesListEl = document.getElementById('communities-list');
+    const createCommunityBtn = document.getElementById('create-community-btn');
+    const newCommunityNameInput = document.getElementById('new-community-name');
+    const chatMessagesEl = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send');
+    const chatRoomSelect = document.getElementById('chat-room-select');
+
+    // app state (local)
+    let state = {
+      level: 1, xp: 0, gold: 0, name: null
+    };
+    let currentUser = null;
+    let currentChatUnsubscribe = null;
+
+    // UI: simple tab switch
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      sections.forEach(s => s.classList.add('hidden'));
+      document.getElementById(target).classList.remove('hidden');
+      tabs.forEach(b => b.classList.remove('text-accent'));
+      btn.classList.add('text-accent');
+    }));
+    // default show missions
+    document.querySelector('[data-tab="missions-section"]').click();
+
+    // Helper: render stats
+    function renderState() {
+      xpDisplay.textContent = `LVL ${state.level} • XP ${state.xp}/100`;
+      profileStats.textContent = `Nível: ${state.level} | XP: ${state.xp} | Ouro: ${state.gold}`;
+      userNameEl.textContent = state.name || 'Convidado';
+    }
+
+    // Save progress to Firestore (merge)
+    async function saveProgress() {
+      if (!currentUser) return;
+      // Ensure numeric types
+      state.level = Number(state.level || 1);
+      state.xp = Number(state.xp || 0);
+      state.gold = Number(state.gold || 0);
+      try {
+        await setDoc(doc(db, 'users', currentUser.uid), state, { merge: true });
+      } catch (err) { console.error('saveProgress error', err); }
+    }
+
+    // Load user progress (one-time) and attach real-time listener to the user doc
+    let userUnsubscribe = null;
+    async function attachUserListener(uid) {
+      // detach previous
+      if (userUnsubscribe) { userUnsubscribe(); userUnsubscribe = null; }
+      const userRef = doc(db, 'users', uid);
+      // ensure doc exists
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) {
+        await setDoc(userRef, state);
+      }
+      // listen for changes
+      userUnsubscribe = onSnapshot(userRef, (docSnap) => {
+        if (!docSnap.exists()) return;
+        const data = docSnap.data();
+        // coerce numeric types to numbers
+        state.level = Number(data.level || 1);
+        state.xp = Number(data.xp || 0);
+        state.gold = Number(data.gold || 0);
+        state.name = data.name || currentUser.displayName || null;
+        renderState();
+      }, (err) => console.error('user onSnapshot', err));
+    }
+
+    // Auth handlers
+    loginBtn.addEventListener('click', async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) { console.error('login error', err); alert('Erro no login: ' + err.message); }
+    });
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      if (user) {
+        profileInfo.textContent = `Logado como ${user.displayName}`;
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        // initialize user state
+        state.name = user.displayName;
+        await attachUserListener(user.uid);
+        // add name/email if not present
+        await setDoc(doc(db, 'users', user.uid), { name: user.displayName, email: user.email }, { merge: true });
+      } else {
+        profileInfo.textContent = 'Não autenticado';
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        state = { level:1, xp:0, gold:0, name:null };
+        renderState();
+        if (userUnsubscribe) { userUnsubscribe(); userUnsubscribe = null; }
+      }
+    });
+
+    // Missions: example gain XP
+    gainXpBtn.addEventListener('click', async () => {
+      if (!currentUser) return alert('Faça login para ganhar XP');
+      state.xp += 50;
+      if (state.xp >= 100) {
+        state.level += 1;
+        state.xp = state.xp - 100;
+      }
+      renderState();
+      await saveProgress();
+    });
+
+    // Communities list & creation
+    async function loadCommunities() {
+      // clear list
+      communitiesListEl.innerHTML = '';
+      // listen for communities collection
+      const q = query(collection(db, 'communities'), orderBy('name'));
+      onSnapshot(q, (snapshot) => {
+        communitiesListEl.innerHTML = '';
+        chatRoomSelect.innerHTML = '<option value="global">global</option>';
+        snapshot.forEach(docSnap => {
+          const id = docSnap.id;
+          const data = docSnap.data();
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between';
+          div.innerHTML = `
+            <div>
+              <div class="font-semibold">${data.name || id}</div>
+              <div class="text-xs text-gray-400">${data.description || ''}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button data-join="${id}" class="bg-cyan-600 text-black px-2 py-1 rounded text-xs">Entrar</button>
+              <button data-open="${id}" class="bg-gray-700 px-2 py-1 rounded text-xs">Abrir Chat</button>
+            </div>`;
+          communitiesListEl.appendChild(div);
+
+          // also add to select for chat rooms
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = id;
+          chatRoomSelect.appendChild(opt);
+        });
+      }, err => console.error('loadCommunities', err));
+    }
+    createCommunityBtn.addEventListener('click', async () => {
+      const name = newCommunityNameInput.value.trim();
+      if (!name) return alert('Escolha um nome');
+      // create doc id from name lowercased no spaces
+      const id = name.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+      try {
+        await setDoc(doc(db, 'communities', id), { name, description: '', members: [] }, { merge: true });
+        newCommunityNameInput.value = '';
+        alert('Comunidade criada: ' + id);
+      } catch (err) { console.error('create community', err); alert('Erro: ' + err.message); }
+    });
+
+    // Join community (adds uid to members array)
+    communitiesListEl.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-join]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-join');
+      if (!currentUser) return alert('Faça login para entrar');
+      try {
+        await updateDoc(doc(db, 'communities', id), { members: arrayUnion(currentUser.uid) });
+        alert('Entrou na comunidade ' + id);
+      } catch (err) { console.error('join community', err); alert('Erro: ' + err.message); }
+    });
+
+    // Open community chat button -> select room and open listener
+    communitiesListEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-open]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-open');
+      chatRoomSelect.value = id;
+      switchChatRoom(id);
+    });
+
+    // Chat: switch room and attach listener
+    function switchChatRoom(roomId) {
+      if (currentChatUnsubscribe) { currentChatUnsubscribe(); currentChatUnsubscribe = null; }
+      chatMessagesEl.innerHTML = '';
+      const messagesQuery = query(collection(db, 'chats', roomId, 'messages'), orderBy('timestamp', 'asc'));
+      currentChatUnsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+        chatMessagesEl.innerHTML = '';
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const el = document.createElement('div');
+          el.className = 'mb-2';
+          const author = d.userId === (currentUser && currentUser.uid) ? 'Você' : (d.userName || d.userId.slice(0,6));
+          const time = d.timestamp && d.timestamp.toDate ? new Date(d.timestamp.toDate()).toLocaleTimeString() : '';
+          el.innerHTML = `<div class="text-xs text-gray-400">${author} ${time}</div><div class="text-sm">${d.text}</div>`;
+          chatMessagesEl.appendChild(el);
+        });
+        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      }, err => console.error('chat onSnapshot', err));
+    }
+
+    // chat room select change
+    chatRoomSelect.addEventListener('change', () => {
+      const room = chatRoomSelect.value || 'global';
+      switchChatRoom(room);
+    });
+
+    // send message
+    chatSendBtn.addEventListener('click', async () => {
+      if (!currentUser) return alert('Faça login para enviar mensagens');
+      const room = chatRoomSelect.value || 'global';
+      const text = chatInput.value.trim();
+      if (!text) return;
+      try {
+        await addDoc(collection(db, 'chats', room, 'messages'), {
+          userId: currentUser.uid,
+          userName: currentUser.displayName || null,
+          text,
+          timestamp: serverTimestamp()
+        });
+        chatInput.value = '';
+      } catch (err) { console.error('send msg', err); alert('Erro: ' + err.message); }
+    });
+
+    // initial load: communities + default chat global
+    loadCommunities();
+    switchChatRoom('global');
+
+    // create a global chat doc container if not exists (optional)
+    async function ensureGlobalChat() {
+      const docRef = doc(db, 'chats', 'global');
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        await setDoc(docRef, { createdAt: serverTimestamp(), name: 'global' });
+      }
+    }
+    ensureGlobalChat();
+
+    // initialize icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
