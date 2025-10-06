@@ -294,7 +294,7 @@ export default (async function initFirebaseIntegration(){
       }
       // Se o v2 defininiu init() mas não chamou, NÃO chamar automaticamente aqui para evitar efeitos colaterais.
       // Porém, se desejar forçar init() logo após integração, descomente a linha abaixo:
-      // if (typeof window.init === 'function') { window.init(); }
+       if (typeof window.init === 'function') { window.init(); }
     });
 
     console.log('Firebase integration initialized (wire-only).');
@@ -306,3 +306,4 @@ export default (async function initFirebaseIntegration(){
     return null;
   }
 })();
+
