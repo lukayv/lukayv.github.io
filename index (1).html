@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeQuest AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Press+Start+2P&family=Roboto+Mono:wght@400;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111827">
+
+    <style>
+        :root {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-primary: #22d3ee;
+            --accent-secondary: #67e8f9;
+            --font-main: 'Inter', sans-serif;
+            --font-game: 'Press Start 2P', cursive;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+
+        [data-theme="futurista"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-primary: #22d3ee;
+            --accent-secondary: #67e8f9;
+            --font-main: 'Inter', sans-serif;
+            --font-game: 'Press Start 2P', cursive;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+    
+
+        [data-theme="medieval"] {
+            --bg-primary: #2c1e19;
+            --bg-secondary: #4a3831;
+            --bg-tertiary: #6e5549;
+            --text-primary: #e6cda5;
+            --text-secondary: #bda27e;
+            --accent-primary: #e6c07a;
+            --accent-secondary: #f2d79b;
+            --font-main: 'MedievalSharp', cursive;
+            --font-game: 'MedievalSharp', cursive;
+            --font-mono: 'MedievalSharp', cursive;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .font-game { font-family: var(--font-game); }
+        .font-mono { font-family: var(--font-mono); }
+
+        .bg-primary { background-color: var(--bg-primary); }
+        .bg-secondary { background-color: var(--bg-secondary); }
+        .bg-tertiary { background-color: var(--bg-tertiary); }
+        .text-primary { color: var(--text-primary); }
+        .text-secondary { color: var(--text-secondary); }
+        .text-accent { color: var(--accent-primary); }
+        .border-accent { border-color: var(--accent-primary); }
+
+        .progress-bar-inner, .attribute-bar-inner { transition: width 0.5s ease-in-out; }
+        .chat-message { display: flex; flex-direction: column; max-width: 85%; }
+        .chat-bubble { overflow-wrap: break-word; }
+        .chat-message.user { align-self: flex-end; align-items: flex-end; }
+        .chat-message.other { align-self: flex-start; align-items: flex-start; }
+        .chat-bubble-user { background-color: #1e40af; color: white; }
+        .chat-bubble-ai { background-color: var(--bg-secondary); color: var(--text-primary); }
+        #ai-chatbox::-webkit-scrollbar, #progress-analysis-box::-webkit-scrollbar, #community-chat-box::-webkit-scrollbar, #mission-library-list::-webkit-scrollbar { width: 8px; }
+        #ai-chatbox::-webkit-scrollbar-track, #progress-analysis-box::-webkit-scrollbar-track, #community-chat-box::-webkit-scrollbar-track, #mission-library-list::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        #ai-chatbox::-webkit-scrollbar-thumb, #progress-analysis-box::-webkit-scrollbar-thumb, #community-chat-box::-webkit-scrollbar-thumb, #mission-library-list::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
+        .attribute-bar { background-color: var(--bg-tertiary); }
+        .strength-bar { background-color: #ef4444; }
+        .intelligence-bar { background-color: #3b82f6; }
+        .charisma-bar { background-color: #eab308; }
+        .vitality-bar { background-color: #22c55e; }
+        .creativity-bar { background-color: #a855f7; }
+        .wisdom-bar { background-color: #2dd4bf; }
+        .discipline-bar { background-color: #f97316; }
+        .avatar-preview-bg {
+            background: radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 30%, transparent) 0%, rgba(20,26,48,0) 70%);
+        }
+        .tab-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .mission-section-title {
+            font-family: var(--font-game);
+            font-size: 0.9rem;
+            color: var(--accent-secondary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--bg-tertiary);
+        }
+        .mission-countdown { font-size: 0.75rem; color: var(--text-secondary); }
+        .mission-description {
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            background-color: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+        
+        .level-up-modal-content {
+            background-color: rgba(10, 15, 30, 0.9);
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-primary), 0 0 30px var(--accent-primary) inset;
+            backdrop-filter: blur(5px);
+        }
+
+        .next-perk {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 4px;
+        }
+        .class-card { transition: all 0.2s ease-in-out; }
+        .class-card:hover { transform: translateY(-5px); border-color: var(--accent-primary); }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+    </style>
+</head>
+<body data-theme="futurista">
+
+    <div class="container mx-auto p-4 md:p-6 max-w-7xl">
+        <header class="text-center mb-8">
+            <h1 class="font-game text-3xl md:text-4xl text-accent" style="text-shadow: 0 0 8px var(--accent-primary);">LifeQuest AI</h1>
+            <p class="text-secondary mt-2">O seu assistente pessoal para uma vida épica.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Character Sheet -->
+            <aside class="lg:col-span-1">
+                <div class="bg-secondary/50 backdrop-blur-sm rounded-xl p-5 border border-tertiary shadow-lg sticky top-6">
+                    <h2 class="text-xl font-bold mb-4 text-center border-b border-tertiary pb-3 font-mono">Painel do Herói</h2>
+                    <div class="flex flex-col items-center mb-4">
+                        <div id="profile-picture-container" class="w-32 h-32 mb-3 avatar-preview-bg rounded-full flex items-center justify-center relative overflow-hidden p-2 cursor-pointer group">
+                             <img id="profile-picture-img" class="w-full h-full object-cover rounded-full hidden" src="">
+                             <i id="profile-picture-icon" data-lucide="user-round" class="w-24 h-24 text-accent/70"></i>
+                             <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="camera" class="w-8 h-8"></i>
+                             </div>
+                        </div>
+                        <div id="hero-name-display" class="font-semibold text-lg text-green-400">Herói do Cotidiano</div>
+                         <div id="hero-title-display" class="text-sm text-yellow-400 mt-1"></div>
+                         <div id="class-display" class="font-game text-sm text-yellow-400 mt-1"></div>
+                        <div id="level-display" class="font-game text-lg text-purple-400">LVL 1</div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center text-sm mb-1 font-mono">
+                            <span class="font-semibold text-primary">XP GERAL</span>
+                            <span id="xp-text" class="text-secondary">0 / 100</span>
+                        </div>
+                        <div class="w-full bg-tertiary h-4 border-2 border-tertiary progress-bar-container">
+                            <div id="xp-bar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full progress-bar-inner" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-around items-center mb-6 text-center">
+                        <div>
+                            <div class="text-xs text-secondary font-mono">OURO</div>
+                            <div class="flex items-center gap-1">
+                                <i class="lucide-icon text-yellow-400 w-5 h-5" data-lucide="coins"></i>
+                                <span id="gold-display" class="text-yellow-400 font-bold text-lg font-mono">0</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-secondary font-mono">RITMO</div>
+                            <div class="flex items-center gap-1">
+                                <i class="lucide-icon text-blue-400 w-5 h-5" data-lucide="timer"></i>
+                                <span id="avg-time-display" class="text-blue-400 font-bold text-sm font-mono">--:--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-center font-mono">Atributos</h3>
+                    <div id="attributes-list" class="space-y-4"></div>
+                </div>
+            </aside>
+
+            <!-- Right Column: Main Content -->
+            <main class="lg:col-span-2">
+                 <div class="mb-6">
+                    <div class="flex border-b border-tertiary flex-wrap">
+                        <button data-tab="tasks" class="tab-btn flex-1 py-3 px-2 text-center font-semibold border-b-2 flex items-center justify-center gap-2 active">
+                            <i class="lucide-icon" data-lucide="swords"></i> Missões
+                        </button>
+                        <button data-tab="coach" class="tab-btn flex-1 py-3 px-2 text-center font-semibold border-b-2 border-transparent text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2">
+                            <i class="lucide-icon" data-lucide="brain-circuit"></i> ISK IA
+                        </button>
+                         <button data-tab="shop" class="tab-btn flex-1 py-3 px-2 text-center font-semibold border-b-2 border-transparent text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2">
+                            <i class="lucide-icon" data-lucide="shopping-cart"></i> Loja
+                        </button>
+                        <button data-tab="community" class="tab-btn flex-1 py-3 px-2 text-center font-semibold border-b-2 border-transparent text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2">
+                            <i class="lucide-icon" data-lucide="users"></i> Comunidade
+                        </button>
+                        <button data-tab="profile" class="tab-btn flex-1 py-3 px-2 text-center font-semibold border-b-2 border-transparent text-secondary hover:text-primary transition-colors flex items-center justify-center gap-2">
+                            <i class="lucide-icon" data-lucide="settings"></i> Perfil
+                        </button>
+                    </div>
+                </div>
+
+                <div id="content-tasks" class="tab-content">
+                    <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary space-y-6">
+                         <!-- Missão de Classe -->
+                        <div id="class-mission-container" class="hidden">
+                             <h3 class="mission-section-title text-yellow-300 border-yellow-400/50">MISSÃO DE CLASSE</h3>
+                            <div id="class-task-list" class="space-y-3"></div>
+                        </div>
+                        <!-- Missões Diárias -->
+                        <div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="mission-section-title">DIÁRIAS</h3>
+                                <div class="flex items-center gap-4">
+                                    <div id="daily-swap-counter" class="mission-countdown font-mono"></div>
+                                    <div id="daily-countdown" class="mission-countdown font-mono"></div>
+                                </div>
+                            </div>
+                            <div id="daily-task-list" class="space-y-3"></div>
+                        </div>
+                        <!-- Missões Semanais -->
+                         <div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="mission-section-title">SEMANAIS</h3>
+                                <div class="flex items-center gap-4">
+                                    <div id="weekly-swap-counter" class="mission-countdown font-mono"></div>
+                                    <div id="weekly-countdown" class="mission-countdown font-mono"></div>
+                                </div>
+                            </div>
+                            <div id="weekly-task-list" class="space-y-3"></div>
+                        </div>
+                        <!-- Missões Mensais -->
+                         <div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="mission-section-title">MENSAIS</h3>
+                                 <div class="flex items-center gap-4">
+                                    <div id="monthly-swap-counter" class="mission-countdown font-mono"></div>
+                                    <div id="monthly-countdown" class="mission-countdown font-mono"></div>
+                                </div>
+                            </div>
+                            <div id="monthly-task-list" class="space-y-3"></div>
+                        </div>
+                         <!-- Missão Bônus -->
+                        <div id="bonus-mission-container" class="hidden">
+                             <h3 class="mission-section-title text-yellow-300 border-yellow-400/50">BÔNUS ESPECIAL</h3>
+                            <div id="bonus-task-list" class="space-y-3"></div>
+                        </div>
+                        <!-- Criar Missão -->
+                        <div class="border-t border-tertiary pt-6">
+                             <button id="toggle-create-mission-btn" class="w-full flex justify-between items-center">
+                                <h3 class="mission-section-title mb-0 pb-0 border-none">CRIAR MISSÕES PERSONALIZADAS</h3>
+                                <i id="create-mission-chevron" class="lucide-icon transition-transform" data-lucide="chevron-down"></i>
+                             </button>
+                             <div id="create-mission-content" class="collapsible-content space-y-4 pt-4">
+                                 <form id="add-daily-mission-form" class="space-y-3 p-2 sm:p-4 bg-black/20 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm font-semibold">Missão Diária</p>
+                                        <button type="button" class="show-library-btn text-xs bg-tertiary hover:bg-opacity-70 px-2 py-1 rounded-md" data-modality="daily">Usar Guardada</button>
+                                    </div>
+                                    <input type="text" id="new-daily-mission-text" placeholder="Qual é a sua missão diária?" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                    <select id="new-daily-mission-attribute" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                        <!-- Options populated by JS -->
+                                    </select>
+                                    <button type="submit" id="add-daily-mission-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                        <i class="lucide-icon" data-lucide="plus-circle"></i> 
+                                        <span id="add-daily-mission-btn-text">Adicionar Missão</span>
+                                    </button>
+                                 </form>
+                                 <form id="add-weekly-mission-form" class="space-y-3 p-2 sm:p-4 bg-black/20 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm font-semibold">Missão Semanal</p>
+                                        <button type="button" class="show-library-btn text-xs bg-tertiary hover:bg-opacity-70 px-2 py-1 rounded-md" data-modality="weekly">Usar Guardada</button>
+                                    </div>
+                                    <input type="text" id="new-weekly-mission-text" placeholder="Qual é a sua missão semanal?" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                    <select id="new-weekly-mission-attribute" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                         <!-- Options populated by JS -->
+                                    </select>
+                                    <button type="submit" id="add-weekly-mission-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                        <i class="lucide-icon" data-lucide="plus-circle"></i> 
+                                        <span id="add-weekly-mission-btn-text">Adicionar Missão</span>
+                                    </button>
+                                 </form>
+                                 <form id="add-monthly-mission-form" class="space-y-3 p-2 sm:p-4 bg-black/20 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm font-semibold">Missão Mensal</p>
+                                        <button type="button" class="show-library-btn text-xs bg-tertiary hover:bg-opacity-70 px-2 py-1 rounded-md" data-modality="monthly">Usar Guardada</button>
+                                    </div>
+                                    <input type="text" id="new-monthly-mission-text" placeholder="Qual é a sua missão mensal?" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                    <select id="new-monthly-mission-attribute" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                         <!-- Options populated by JS -->
+                                    </select>
+                                    <button type="submit" id="add-monthly-mission-btn" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                        <i class="lucide-icon" data-lucide="plus-circle"></i> 
+                                        <span id="add-monthly-mission-btn-text">Adicionar Missão</span>
+                                    </button>
+                                 </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="content-coach" class="tab-content hidden space-y-8">
+                     <!-- AI Chat -->
+                    <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center"><i class="lucide-icon mr-2" data-lucide="brain-circuit"></i> Fale com a ISK IA</h2>
+                        <div id="ai-chatbox" class="h-[30rem] bg-black/20 rounded-lg p-4 overflow-y-auto mb-4 border border-tertiary flex flex-col gap-4"></div>
+                        <div class="relative">
+                            <textarea id="ai-input" placeholder="Peça um conselho, defina uma meta..." class="w-full bg-tertiary border border-tertiary rounded-lg px-4 py-3 pr-20 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-accent"></textarea>
+                            <button id="ai-send-btn" class="absolute right-3 top-1/2 -translate-y-1/2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold p-3 rounded-full transition-colors disabled:bg-gray-500">
+                                <i id="send-icon" class="lucide-icon" data-lucide="send"></i>
+                                <i id="loading-spinner" class="lucide-icon animate-spin hidden" data-lucide="loader-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Analysis -->
+                    <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center"><i class="lucide-icon mr-2" data-lucide="line-chart"></i> Análise de Progresso</h2>
+                        <h3 class="text-lg font-semibold mb-3">Missões Concluídas por Atributo</h3>
+                        <div id="progress-charts" class="space-y-3 mb-6"></div>
+                        <h3 class="text-lg font-semibold mb-3">Análise da ISK IA</h3>
+                        <button id="analyze-progress-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i id="analyze-icon" class="lucide-icon" data-lucide="lightbulb"></i>
+                            <i id="analyze-spinner" class="lucide-icon animate-spin hidden" data-lucide="loader-circle"></i>
+                            Analisar meu progresso
+                        </button>
+                        <div id="progress-analysis-box" class="mt-4 h-64 bg-black/20 rounded-lg p-4 overflow-y-auto border border-tertiary text-secondary">
+                            Clique no botão acima para receber feedback personalizado da sua ISK IA.
+                        </div>
+                    </div>
+                </div>
+
+                 <div id="content-shop" class="tab-content hidden">
+                     <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary text-center">
+                         <h2 class="text-2xl font-bold mb-6 flex items-center justify-center gap-2"><i class="lucide-icon" data-lucide="shopping-cart"></i> Loja de Recompensas</h2>
+                         <i class="lucide-icon w-24 h-24 text-yellow-400 mx-auto mb-4" data-lucide="gem"></i>
+                         <p class="text-primary mb-2">Em breve, poderá usar o seu Ouro aqui!</p>
+                         <p class="text-secondary text-sm mb-6">O que gostaria de ver na loja?</p>
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                             <div class="bg-tertiary/50 p-4 rounded-lg"> <h3 class="font-semibold text-accent mb-2">Temas para a Interface</h3> <p class="text-xs text-secondary">Personalize as cores e o visual da aplicação para combinar com o seu estilo.</p> </div>
+                             <div class="bg-tertiary/50 p-4 rounded-lg"> <h3 class="font-semibold text-green-400 mb-2">Boosts de XP</h3> <p class="text-xs text-secondary">Compre itens que dobram o XP ganho por um dia inteiro para acelerar a sua evolução.</p> </div>
+                             <div class="bg-tertiary/50 p-4 rounded-lg"> <h3 class="font-semibold text-purple-400 mb-2">Passes de Missão</h3> <p class="text-xs text-secondary">Use o ouro para substituir uma missão diária que não queira fazer ou para gerar uma missão extra.</p> </div>
+                         </div>
+                     </div>
+                 </div>
+
+                <div id="content-community" class="tab-content hidden">
+                    <div id="community-list-view">
+                         <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary space-y-8">
+                             <div>
+                                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="share-2"></i> O seu ID de Amigo</h2>
+                                <div class="bg-black/20 p-4 rounded-lg text-center">
+                                    <p id="user-id-display" class="font-mono text-2xl tracking-widest text-green-400">0000000000</p>
+                                    <p class="text-xs text-secondary mt-2">Partilhe este código para que os seus amigos o possam adicionar.</p>
+                                </div>
+                             </div>
+                             <div>
+                                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="user-plus"></i> Adicionar Amigos</h2>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Insira o ID do seu amigo..." class="flex-grow bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                    <button class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg">Adicionar</button>
+                                </div>
+                             </div>
+                             <div>
+                                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="users-2"></i> Meus Amigos</h2>
+                                <div id="friends-list" class="space-y-3">
+                                    <p class="text-secondary text-center italic">A sua lista de amigos está vazia.</p>
+                                </div>
+                             </div>
+                             <div>
+                                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="users"></i> Comunidades</h2>
+                                <div id="community-list" class="space-y-3">
+                                    <div class="bg-tertiary/50 p-4 rounded-lg flex justify-between items-center border border-tertiary"><div><h3 class="font-semibold text-accent">Leitores Vorazes</h3><p class="text-xs text-secondary">Para quem tem metas de leitura.</p></div><button class="join-community-btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1 px-3 rounded-lg text-sm" data-community-name="Leitores Vorazes">Entrar</button></div>
+                                    <div class="bg-tertiary/50 p-4 rounded-lg flex justify-between items-center border border-tertiary"><div><h3 class="font-semibold text-red-400">Maratonistas do Brasil</h3><p class="text-xs text-secondary">Foco em corrida e fitness.</p></div><button class="join-community-btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1 px-3 rounded-lg text-sm" data-community-name="Maratonistas do Brasil">Entrar</button></div>
+                                </div>
+                             </div>
+                             <div>
+                                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="plus-square"></i> Criar Comunidade</h2>
+                                <div class="flex gap-2">
+                                    <input type="text" id="new-community-name" placeholder="Nome da sua comunidade..." class="flex-grow bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                    <button id="create-community-btn" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg">Criar</button>
+                                </div>
+                             </div>
+                             <div id="hall-of-fame-container">
+                                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="trophy"></i> Salão da Fama</h2>
+                                <div id="hall-of-fame-list" class="space-y-3">
+                                    <!-- Hall of Fame will be rendered here -->
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                    <div id="community-chat-view" class="hidden">
+                        <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary">
+                            <div class="flex items-center mb-4">
+                                <button id="back-to-communities-btn" class="mr-4 p-2 hover:bg-tertiary rounded-full"><i data-lucide="arrow-left"></i></button>
+                                <h2 id="community-chat-title" class="text-2xl font-bold"></h2>
+                            </div>
+                            <div id="community-chat-box" class="h-[30rem] bg-black/20 rounded-lg p-4 overflow-y-auto mb-4 border border-tertiary flex flex-col gap-4">
+                                <!-- Chat content here -->
+                            </div>
+                            <div class="relative">
+                                <input id="community-chat-input" type="text" placeholder="Envie uma mensagem..." class="w-full bg-tertiary border border-tertiary rounded-lg px-4 py-3 pr-16">
+                                <button id="community-chat-send-btn" class="absolute right-3 top-1/2 -translate-y-1/2 bg-cyan-600 p-2 rounded-full hover:bg-cyan-500 transition-colors"><i data-lucide="send"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-profile" class="tab-content hidden">
+                    <div class="bg-secondary/50 rounded-xl p-5 border border-tertiary space-y-8">
+                         <div>
+                            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="user-cog"></i> Configurações do Herói</h2>
+                             <div class="mb-6">
+                                <label for="hero-name-input" class="block text-sm font-medium text-secondary mb-1">Nome do Herói</label>
+                                <input type="text" id="hero-name-input" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2" value="Herói do Cotidiano">
+                            </div>
+                            <div class="mb-6">
+                                <label for="theme-selector" class="block text-sm font-medium text-secondary mb-1">Tema Visual</label>
+                                <select id="theme-selector" class="w-full bg-tertiary border border-tertiary rounded-lg px-3 py-2">
+                                    <option value="futurista">Futurista</option>
+                                    <option value="medieval">Fantasia Medieval</option>
+                                </select>
+                            </div>
+                         </div>
+                         <div>
+                            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="log-in"></i> Opções de Login</h2>
+                            <div id="auth-buttons" class="space-y-4">
+                                <button id="google-login-btn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <i data-lucide="key-round"></i> Entrar com Google
+                                </button>
+                                 <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                     <i data-lucide="smartphone"></i> Entrar com Telemóvel
+                                </button>
+                            </div>
+                             <div id="logout-section" class="hidden">
+                                <p id="user-email" class="text-center text-secondary mb-4"></p>
+                                <button id="logout-btn" class="w-full bg-tertiary hover:bg-opacity-70 text-primary font-bold py-3 px-4 rounded-lg">Sair</button>
+                            </div>
+                         </div>
+                         <div id="titles-container">
+                            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="award"></i> Títulos</h2>
+                            <div id="titles-list" class="space-y-3">
+                                <!-- Titles will be rendered here -->
+                            </div>
+                         </div>
+                         <div id="class-perks-container" class="hidden">
+                             <h2 id="class-perks-title" class="text-2xl font-bold mb-4 flex items-center gap-2"></h2>
+                             <div id="class-perks-list" class="space-y-3"></div>
+                         </div>
+                         <div>
+                            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="star"></i> Perks Gerais</h2>
+                            <div id="perks-list" class="space-y-3">
+                                <p class="text-gray-500 text-center italic">Aumente o nível dos seus atributos para desbloquear perks!</p>
+                            </div>
+                         </div>
+                         <div>
+                            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="lucide-icon" data-lucide="database-zap"></i> Gestão de Conta</h2>
+                            <button id="reset-account-btn" class="w-full bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="trash-2"></i> Resetar Conta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+    
+    <input type="file" id="profile-picture-input" class="hidden" accept="image/*">
+    <div id="level-up-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+         <div id="level-up-card" class="level-up-modal-content rounded-xl p-8 text-center transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-center gap-2 font-mono text-lg text-accent border-b-2 border-accent/50 pb-2 mb-4">
+                <i data-lucide="bell"></i>
+                <span>NOTIFICAÇÃO DO SISTEMA</span>
+            </div>
+            <p id="new-level-text" class="text-2xl text-primary mb-6">Você alcançou o Nível 2!</p>
+            <button id="close-modal-btn" class="font-semibold bg-accent text-primary px-6 py-2 rounded-lg hover:bg-opacity-80 transition-colors">Continuar</button>
+        </div>
+    </div>
+
+    <div id="class-selection-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+         <div class="bg-secondary border border-accent rounded-xl p-8 text-center max-w-4xl">
+            <h2 class="font-game text-2xl text-accent mb-4">ESCOLHA O SEU ARQUÉTIPO!</h2>
+            <p class="text-primary mb-8">Ao atingir o Nível 10, você pode especializar-se. A sua classe dará bónus e missões únicas.</p>
+            <div id="class-selection-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Class cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="mission-library-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-secondary border border-accent rounded-xl p-8 text-center max-w-lg w-full">
+            <h2 class="font-game text-2xl text-accent mb-4">Biblioteca de Missões</h2>
+            <div id="mission-library-list" class="h-64 overflow-y-auto space-y-2 text-left mb-6 pr-2">
+                <!-- Library items will be inserted here -->
+            </div>
+            <button id="close-library-btn" class="font-semibold bg-yellow-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-400 transition-colors">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-secondary rounded-lg p-6 max-w-sm w-full">
+            <h3 id="confirmation-title" class="text-lg font-bold mb-4">Tem a certeza?</h3>
+            <p id="confirmation-message" class="text-sm text-secondary mb-6">Esta ação não pode ser revertida.</p>
+            <div class="flex justify-end gap-4">
+                <button id="confirm-cancel-btn" class="px-4 py-2 rounded-lg bg-tertiary">Cancelar</button>
+                <button id="confirm-accept-btn" class="px-4 py-2 rounded-lg bg-red-600 text-white">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SW-COMMENT-START -->
+<script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+<!-- SW-COMMENT-END -->
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
+  query, orderBy, onSnapshot, serverTimestamp, arrayUnion, enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+// === SUA CONFIG ===
+const firebaseConfig = {
+  apiKey: "AIzaSyBuLs2bZ8-_8ci1Q4Nt4pYMZc1BplmDjOs",
+  authDomain: "isk-ia.firebaseapp.com",
+  projectId: "isk-ia",
+  storageBucket: "isk-ia.firebaseapp.com",
+  messagingSenderId: "442504849543",
+  appId: "1:442504849543:web:52c05c5aac9cb5a1e3b022",
+  measurementId: "G-KMHL5D27FP"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+enableIndexedDbPersistence(db).catch(err => {
+  if (err.code === 'failed-precondition') console.warn('Offline não ativado (múltiplas abas).');
+  if (err.code === 'unimplemented') console.warn('Offline não suportado.');
+});
+
+let localState = window.state || { level:1, xp:0, xpToNextLevel:100, gold:0, profilePicture:null };
+let currentUser = null;
+let userUnsubscribe = null;
+let currentChatUnsubscribe = null;
+
+async function saveProgress(uid) {
+  if (!uid) return;
+  if (window.state) localState = { ...localState, ...window.state };
+  localState.level = Number(localState.level || 1);
+  localState.xp = Number(localState.xp || 0);
+  localState.gold = Number(localState.gold || 0);
+  try { await setDoc(doc(db, 'users', uid), localState, { merge:true }); } catch(e){ console.error('saveProgress', e); }
+}
+
+async function attachUserListener(uid) {
+  if (userUnsubscribe) userUnsubscribe();
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    try { await setDoc(ref, localState, { merge:true }); } catch(e){console.error(e);}
+  }
+  userUnsubscribe = onSnapshot(ref, ds => {
+    if (!ds.exists()) return;
+    const d = ds.data();
+    window.state = window.state || {};
+    window.state.level = Number(d.level || window.state.level || 1);
+    window.state.xp = Number(d.xp || window.state.xp || 0);
+    window.state.gold = Number(d.gold || window.state.gold || 0);
+    window.state.profilePicture = d.profilePicture || window.state.profilePicture || null;
+    if (typeof renderAll === 'function') renderAll();
+  }, err => console.error('user onSnapshot', err));
+}
+
+function wireAuthButtons() {
+  const googleBtns = document.querySelectorAll('#google-login-btn, button[data-login="google"]');
+  googleBtns.forEach(b => b && b.addEventListener('click', async () => {
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e){ console.error('login', e); alert('Erro no login: '+e.message); }
+  }));
+  const logoutBtns = document.querySelectorAll('#logout-btn, button[data-logout="true"]');
+  logoutBtns.forEach(b => b && b.addEventListener('click', async () => { try{ await signOut(auth); }catch(e){console.error(e);} }));
+}
+
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  if (user) {
+    await attachUserListener(user.uid);
+    try { await setDoc(doc(db, 'users', user.uid), { name:user.displayName, email:user.email, profilePicture:user.photoURL }, { merge:true }); } catch(e){console.error(e);}
+    const emailEl = document.getElementById('user-email'); if (emailEl) emailEl.textContent = user.email || '';
+    if (typeof renderAll === 'function') renderAll();
+  } else {
+    if (userUnsubscribe) userUnsubscribe();
+    userUnsubscribe = null;
+    if (typeof renderAll === 'function') renderAll();
+  }
+});
+
+function listenChatRoom(roomId, onMsgList) {
+  if (currentChatUnsubscribe) currentChatUnsubscribe();
+  const q = query(collection(db, 'chats', roomId, 'messages'), orderBy('timestamp', 'asc'));
+  currentChatUnsubscribe = onSnapshot(q, snap => {
+    const msgs = []; snap.forEach(s => msgs.push({ id:s.id, ...s.data() })); onMsgList(msgs);
+  }, e => console.error('chat listen', e));
+}
+
+async function sendChatMessage(roomId, text) {
+  if (!currentUser) return alert('Faça login');
+  if (!text || !text.trim()) return;
+  try {
+    await addDoc(collection(db, 'chats', roomId, 'messages'), {
+      userId: currentUser.uid,
+      userName: currentUser.displayName || null,
+      avatar: currentUser.photoURL || null,
+      text: text.trim(),
+      timestamp: serverTimestamp()
+    });
+  } catch(e){ console.error('send chat', e); alert('Erro ao enviar: '+e.message); }
+}
+
+function wireCommunityListUI() {
+  const listEl = document.getElementById('community-list');
+  const createBtn = document.getElementById('create-community-btn');
+  const newNameInput = document.getElementById('new-community-name');
+  if (!listEl || !createBtn) return;
+  const q = query(collection(db, 'communities'), orderBy('name'));
+  onSnapshot(q, snap => {
+    listEl.innerHTML = '';
+    snap.forEach(ds => {
+      const d = ds.data(); const id = ds.id;
+      const div = document.createElement('div');
+      div.className = 'community-row';
+      div.innerHTML = `<div><strong>${d.name||id}</strong><p class="text-xs text-secondary">${d.description||''}</p></div>
+        <div class="flex gap-2"><button class="join-community-btn" data-join="${id}">Entrar</button><button class="open-community-chat-btn" data-open="${id}">Chat</button></div>`;
+      listEl.appendChild(div);
+    });
+  }, e=>console.error(e));
+  createBtn.addEventListener('click', async ()=>{
+    const name = (newNameInput.value||'').trim(); if(!name) return alert('Digite um nome');
+    const id = name.toLowerCase().replace(/[^a-z0-9-_]/g,'-');
+    await setDoc(doc(db,'communities',id), { name, description:'', members:[] }, { merge:true });
+    newNameInput.value=''; alert('Criada: '+id);
+  });
+  listEl.addEventListener('click', async e=>{
+    const btn = e.target.closest('button[data-join]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-join');
+    if (!currentUser) return alert('Faça login');
+    try { await updateDoc(doc(db,'communities',id), { members: arrayUnion(currentUser.uid) }); alert('Entrou: '+id); } catch(e){console.error(e);}
+  });
+}
+
+function wireCommunityChatUI() {
+  const chatBox = document.getElementById('community-chat-box');
+  const chatInput = document.getElementById('community-chat-input');
+  const chatSend = document.getElementById('community-chat-send-btn');
+  const chatTitle = document.getElementById('community-chat-title');
+  const backBtn = document.getElementById('back-to-communities-btn');
+  if (!chatBox || !chatInput || !chatSend) return;
+  let currentRoom = 'global';
+  listenChatRoom(currentRoom, msgs => renderCommunityMessages(chatBox, msgs));
+  chatSend.addEventListener('click', async ()=>{ await sendChatMessage(currentRoom, chatInput.value); chatInput.value=''; });
+  backBtn && backBtn.addEventListener('click', ()=>{ document.getElementById('community-chat-view').classList.add('hidden'); document.getElementById('community-list-view').classList.remove('hidden'); if(currentChatUnsubscribe) currentChatUnsubscribe(); });
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('[data-open]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-open');
+    if (!id) return;
+    currentRoom = id;
+    document.getElementById('community-list-view').classList.add('hidden');
+    document.getElementById('community-chat-view').classList.remove('hidden');
+    chatTitle && (chatTitle.textContent = id);
+    listenChatRoom(currentRoom, msgs=> renderCommunityMessages(chatBox, msgs));
+  });
+}
+
+function renderCommunityMessages(container, msgs) {
+  if (!container) return;
+  container.innerHTML = '';
+  msgs.forEach(m=>{
+    const el = document.createElement('div');
+    el.className = 'chat-row';
+    const avatar = m.avatar ? `<img src="${m.avatar}" class="w-8 h-8 rounded-full mr-2">` : `<div class="w-8 h-8 rounded-full bg-gray-600 mr-2"></div>`;
+    el.innerHTML = `<div class="flex items-start"><div>${avatar}</div><div><div class="text-xs text-secondary">${m.userName||m.userId.slice(0,6)}</div><div class="chat-bubble p-2 rounded">${m.text}</div></div></div>`;
+    container.appendChild(el);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function wireGenericChatSenders() {
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+  const chatMessages = document.getElementById('chat-messages');
+  if (!chatInput || !chatSend || !chatMessages) return;
+  chatSend.addEventListener('click', async ()=>{ if(!currentUser) return alert('Faça login'); await sendChatMessage('global', chatInput.value); chatInput.value=''; });
+  listenChatRoom('global', msgs=>{
+    chatMessages.innerHTML='';
+    msgs.forEach(m=>{
+      const el = document.createElement('div');
+      const avatar = m.avatar ? `<img src="${m.avatar}" class="w-6 h-6 rounded-full inline-block mr-2 align-middle">` : `<div class="w-6 h-6 rounded-full bg-gray-600 inline-block mr-2 align-middle"></div>`;
+      el.innerHTML = `${avatar}<strong class="text-sm">${m.userName||m.userId.slice(0,6)}</strong> <span class="text-xs text-secondary"> - ${m.timestamp && m.timestamp.toDate? new Date(m.timestamp.toDate()).toLocaleTimeString():''}</span><div class="text-sm">${m.text}</div>`;
+      chatMessages.appendChild(el);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+}
+
+function wireProfilePictureInput() {
+  const input = document.getElementById('profile-picture-input');
+  const img = document.getElementById('profile-picture-img');
+  const container = document.getElementById('profile-picture-container');
+  if (!input || !container) return;
+  container.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', ()=>{
+    const file = input.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      const dataUrl = reader.result;
+      img && (img.src = dataUrl, img.classList.remove('hidden'));
+      if (currentUser) {
+        try { await setDoc(doc(db,'users',currentUser.uid), { profilePicture: dataUrl }, { merge:true }); alert('Foto salva.'); } catch(e){console.error(e);}
+      } else alert('Faça login para salvar.');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  wireAuthButtons();
+  wireCommunityListUI();
+  wireCommunityChatUI();
+  wireGenericChatSenders();
+  wireProfilePictureInput();
+  if (typeof init === 'function') {
+    try { init(); } catch(e){ console.warn('init() failed after injection', e); }
+  }
+});
+</script>
+
+</body>
+</html>
+
